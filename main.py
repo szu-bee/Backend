@@ -18,6 +18,11 @@ def shutdown_session(exception=None):
     db_session.remove()
 
 
+@app.route('/', methods=['GET'])
+def index():
+    return 'Hello!'
+
+
 @app.route('/regi', methods=['POST'])
 def regi():
     json_body = request.json
@@ -36,7 +41,7 @@ def regi():
     user = User(name, email, password)
     db_session.add(user)
     db_session.commit()
-    return 'create user succ', 200
+    return 'create user successfully!', 200
 
 
 if __name__ == '__main__':
