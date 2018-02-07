@@ -22,6 +22,9 @@ class Feed(Base):
     name = Column(String(50), nullable=False)
     feed_url = Column(String(120), unique=True, nullable=False)
 
+    def __init__(self):
+        return
+
 
 class Article(Base):
     __tablename__ = 'articles'
@@ -29,3 +32,6 @@ class Article(Base):
     title = Column(String(120), nullable=True)
     desc = Column(String(500), nullable=True)
     pic = Column(String(120), nullable=True)
+
+    def __init__(self):
+        return
