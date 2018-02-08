@@ -2,8 +2,9 @@ from flask import Flask, request
 from flask_cors import CORS
 from db import db_session, init_db
 from models import User
-from validate_email import validate_email
+import validators
 from bcrypt import checkpw
+from feedparser import parse
 import config
 
 app = Flask(__name__)
@@ -33,7 +34,7 @@ def regi():
             len(name) is 0 or \
             password is None or \
             len(password) < DEFAULT_PASS_LEN or \
-            not validate_email(email):
+            not validators.email(email):
         return 'req params not valid.', 400
 
     if User.query.filter(User.email == email).count() is not 0:
@@ -48,10 +49,10 @@ def regi():
 @app.route('/login', methods=['POST'])
 def login():
     json_body = request.json
-    email = json_body['email'].encode('utf8')
+    email = json_body['email']
     password = json_body['password'].encode('utf8')
 
-    if not validate_email(email) or \
+    if not validators.email(email) or \
             password is None or \
             len(password) < DEFAULT_PASS_LEN:
         return 'req params not valid.', 400
@@ -65,6 +66,31 @@ def login():
             return 'login successfully!', 200
         else:
             return 'password wrong.', 400
+
+
+@app.route('/subsc', methods=['POST', 'GET'])
+def subsc():
+    if request.method == 'POST':
+        feed_url = request.json['feed_url']
+
+        if feed_url is None or not validators.url(feed_url):
+            return 'req params not valid.', 400
+
+        feed = parse(feed_url)
+        if len(feed['entries']) is 0:
+            return 'could not find a feed at the specified location.', 404
+
+        # get articles new updates
+        # feed = parse(url, modified=feed.modified, etag=feed.etag)
+
+        for article in feed.entries:
+            print article.title + ": " + article.link
+
+        return 'ok', 200
+    else:
+        url = 'http://www.zhangxinxu.com/wordpress/?feed=rss2'
+        rss_url = 'http://www.oschina.net/news/rss'
+        return
 
 
 if __name__ == '__main__':

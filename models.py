@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy.orm import relationship
+
 from db import Base
 from bcrypt import hashpw, gensalt
 
@@ -9,6 +11,12 @@ class User(Base):
     name = Column(String(50), nullable=False)
     email = Column(String(120), unique=True, nullable=False)
     hashed_pass = Column(String(100), nullable=False)
+    feeds = relationship(
+        'Feed',
+        backref='user',
+        lazy='dynamic',
+        primaryjoin='User.id == Feed.user_id'
+    )
 
     def __init__(self, name, email, pwd):
         self.name = name
@@ -21,9 +29,17 @@ class Feed(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False)
     feed_url = Column(String(120), unique=True, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    articles = relationship(
+        'Article',
+        backref='feed',
+        lazy='dynamic',
+        primaryjoin='Feed.id == Article.feed_id'
+    )
 
-    def __init__(self):
-        return
+    def __init__(self, name, url):
+        self.name = name
+        self.feed_url = url
 
 
 class Article(Base):
@@ -32,6 +48,13 @@ class Article(Base):
     title = Column(String(120), nullable=True)
     desc = Column(String(500), nullable=True)
     pic = Column(String(120), nullable=True)
+    isStarred = Column(Boolean, nullable=False)
+    isRead = Column(Boolean, nullable=False)
+    feed_id = Column(Integer, ForeignKey('feeds.id'))
 
-    def __init__(self):
-        return
+    def __init__(self, title, desc, pic):
+        self.title = title
+        self.desc = desc
+        self.pic = pic
+        self.isStarred = False
+        self.isRead = False
